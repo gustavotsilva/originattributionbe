@@ -4,7 +4,7 @@ dotenv.config();
 import { SentryError, sentryLog } from './sentry.js'
 import express from 'express';
 import { MongoClient, ServerApiVersion } from 'mongodb';
-const cors = require('cors');
+import cors from 'cors';
 
 const app = express();
 app.use(cors());
