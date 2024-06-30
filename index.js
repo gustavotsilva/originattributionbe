@@ -3,10 +3,11 @@ dotenv.config();
 
 import { SentryError, sentryLog } from './sentry.js'
 import express from 'express';
-import serverless from 'serverless-http';
 import { MongoClient, ServerApiVersion } from 'mongodb';
+const cors = require('cors');
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const uri = process.env.MONGODB_CONNECTION;
@@ -43,11 +44,7 @@ app.post('/pulse', async (req, res) => {
     res.status(response.code).json({ message: response.message });
 });
 
-if(!process.env.AWS_EXECUTION_ENV) {
-  const port = parseInt(process.env.PORT);
-  app.listen(port, () => {
-    console.log(`listening on port ${port}`);
-  });
-}
-
-export const handler = serverless(app);
+const port = parseInt(process.env.PORT);
+app.listen(port, () => {
+  console.log(`listening on port ${port}`);
+});
