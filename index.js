@@ -5,6 +5,7 @@ import { SentryError, sentryLog } from './sentry.js'
 import express from 'express';
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import cors from 'cors';
+import { getMatchingConfidence } from './matching.js';
 
 const app = express();
 app.use(cors());
@@ -27,6 +28,12 @@ async function connectToDatabase() {
     return (cachedDb = db);
 }
 
+async function findPulse(collection, ipAddress) {
+    const filter = { 'pulse.ipAddress': ipAddress };
+    const sorting = { 'pulse.timestampUTC': -1 };
+    return await collection.find(filter).sort(sorting).limit(5).toArray()
+}
+
 app.post('/pulse', async (req, res) => {
     const requestBody = req.body;
     const response = {}
@@ -42,6 +49,40 @@ app.post('/pulse', async (req, res) => {
       sentryLog(SentryError.INCIDENT, requestBody, error);
     }
     res.status(response.code).json({ message: response.message });
+});
+
+app.get('/match', async (req, res) => {
+  const requestBody = req.body;
+  const response = {};
+  try {
+    const pulse_client = requestBody.pulse;
+    const collection = (await connectToDatabase()).collection('pulse_heartbeat');
+    const heartbeats = await findPulse(collection, pulse_client.ipAddress);
+    const matchedPulse = {
+      confidence: 0,
+      pulse: null
+    };
+    if(heartbeats?.length) {
+      const highestConfidencePulse = heartbeats.reduce((a, b) => {
+        const confidenceA = getMatchingConfidence(a.pulse, pulse_client);
+        const confidenceB = getMatchingConfidence(b.pulse, pulse_client);
+        return confidenceA > confidenceB ? a : b;
+      });
+      const highestConfidenceScore = getMatchingConfidence(highestConfidencePulse.pulse, pulse_client);
+      if(highestConfidenceScore) {
+        matchedPulse.confidence = highestConfidenceScore;
+        matchedPulse.pulse = highestConfidencePulse.pulse;
+      }
+    }
+    response.code = 200;
+    response.message = matchedPulse;
+    sentryLog(SentryError.INFO, requestBody, response.message);
+  } catch (error) {
+    response.code = 500;
+    response.message = `Failed to match - ${error.message}`;
+    sentryLog(SentryError.INCIDENT, requestBody, error);
+  }
+  res.status(response.code).json((response.code === 200 ? response.message : { message: response.message }));
 });
 
 const port = parseInt(process.env.PORT);
