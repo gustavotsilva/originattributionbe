@@ -55,7 +55,7 @@ app.get('/match', async (req, res) => {
   const requestBody = req.body;
   const response = {};
   try {
-    const pulse_client = requestBody.pulse;
+    const pulse_client = requestBody;
     const collection = (await connectToDatabase()).collection('pulse_heartbeat');
     const heartbeats = await findPulse(collection, pulse_client.ipAddress);
     const matchedPulse = {
