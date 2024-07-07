@@ -51,7 +51,7 @@ app.post('/pulse', async (req, res) => {
     res.status(response.code).json({ message: response.message });
 });
 
-app.get('/match', async (req, res) => {
+app.post('/match', async (req, res) => {
   const requestBody = req.body;
   const response = {};
   try {
