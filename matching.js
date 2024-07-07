@@ -10,7 +10,7 @@ const getSecondsBetweenTimestamps = (timestamp1, timestamp2) =>
  
  export function getMatchingConfidence(pulse_db, pulse_client){
    const secondsInBetween = getSecondsBetweenTimestamps(pulse_client.timestampUTC, pulse_db.timestampUTC);
-         if(secondsInBetween <= 60)   return Number(0.98 + deviceMatchingScore(pulse_db, pulse_client, 0.01)).toFixed(2);  //max: 100%
+         if(secondsInBetween <= 90)   return Number(0.98 + deviceMatchingScore(pulse_db, pulse_client, 0.01)).toFixed(2);  //max: 100%
    else  if(secondsInBetween <= 120)  return Number(0.95 + deviceMatchingScore(pulse_db, pulse_client, 0.01)).toFixed(2);  //max: 97%
    else  if(secondsInBetween <= 300)  return Number(0.90 + deviceMatchingScore(pulse_db, pulse_client, 0.025)).toFixed(2); //max: 95%
    else  if(secondsInBetween <= 600)  return Number(0.80 + deviceMatchingScore(pulse_db, pulse_client, 0.05)).toFixed(2);  //max: 90%
