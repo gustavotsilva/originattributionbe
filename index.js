@@ -67,8 +67,8 @@ app.post('/match', async (req, res) => {
       });
       const highestConfidenceScore = getMatchingConfidence(highestConfidencePulse.pulse, pulse_client);
       if(highestConfidenceScore) {
+        matchedPulse.confidence = highestConfidenceScore;
         matchedPulse.pulse = highestConfidencePulse.pulse;
-        matchedPulse.pulse.confidence = highestConfidenceScore;
       }
     }
     response.code = 200;
