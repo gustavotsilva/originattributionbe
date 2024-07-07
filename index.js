@@ -58,10 +58,7 @@ app.post('/match', async (req, res) => {
     const pulse_client = requestBody;
     const collection = (await connectToDatabase()).collection('pulse_heartbeat');
     const heartbeats = await findPulse(collection, pulse_client.ipAddress);
-    const matchedPulse = {
-      confidence: 0,
-      pulse: null
-    };
+    const matchedPulse = {};
     if(heartbeats?.length) {
       const highestConfidencePulse = heartbeats.reduce((a, b) => {
         const confidenceA = getMatchingConfidence(a.pulse, pulse_client);
@@ -70,8 +67,8 @@ app.post('/match', async (req, res) => {
       });
       const highestConfidenceScore = getMatchingConfidence(highestConfidencePulse.pulse, pulse_client);
       if(highestConfidenceScore) {
-        matchedPulse.confidence = highestConfidenceScore;
         matchedPulse.pulse = highestConfidencePulse.pulse;
+        matchedPulse.pulse.confidence = highestConfidenceScore;
       }
     }
     response.code = 200;
