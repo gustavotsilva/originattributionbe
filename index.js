@@ -73,7 +73,7 @@ app.post('/match', async (req, res) => {
     }
     response.code = 200;
     response.message = matchedPulse;
-    sentryLog(SentryError.INFO, requestBody, response.message);
+    sentryLog(SentryError.INFO, requestBody, 'Pulse matched successfully');
   } catch (error) {
     response.code = 500;
     response.message = `Failed to match - ${error.message}`;
