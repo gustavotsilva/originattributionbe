@@ -34,12 +34,18 @@ async function findPulse(collection, ipAddress) {
     return await collection.find(filter).sort(sorting).limit(5).toArray()
 }
 
+async function findDuplicated(collection, ipAddress, uuid, originMemberID, event) {
+  const filter = { 'pulse.ipAddress': ipAddress, 'pulse.uuid': uuid, 'pulse.originMemberID': originMemberID, 'event': event };
+  return await collection.find(filter).toArray()
+}
+
 app.post('/pulse', async (req, res) => {
     const requestBody = req.body;
     const response = {}
     try {
       const collection = (await connectToDatabase()).collection('pulse_heartbeat');
-      await collection.insertOne(requestBody);
+      const duplicated = await findDuplicated(collection, requestBody.pulse.ipAddress, requestBody.pulse.uuid, requestBody.pulse.originMemberID, requestBody.event);
+      if(!duplicated?.length) await collection.insertOne(requestBody);
       response.code = 200;
       response.message = 'Data saved successfully';
       sentryLog(SentryError.INFO, requestBody, response.message);
