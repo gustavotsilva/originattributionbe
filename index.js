@@ -34,8 +34,8 @@ async function findPulse(collection, ipAddress) {
     return await collection.find(filter).sort(sorting).limit(5).toArray()
 }
 
-async function findDuplicated(collection, ipAddress, uuid, originMemberID, event) {
-  const filter = { 'pulse.ipAddress': ipAddress, 'pulse.uuid': uuid, 'pulse.originMemberID': originMemberID, 'event': event };
+async function findDuplicated(collection, ipAddress, uuid, originMemberID, event, eventDetails) {
+  const filter = { 'pulse.ipAddress': ipAddress, 'pulse.uuid': uuid, 'pulse.originMemberID': originMemberID, 'event': event, 'eventDetails': eventDetails };
   return await collection.find(filter).toArray()
 }
 
@@ -51,7 +51,7 @@ app.post('/pulse', async (req, res) => {
     try {
       if(validPageViewPulse(requestBody)){
         const collection = (await connectToDatabase()).collection('pulse_heartbeat');
-        const duplicated = await findDuplicated(collection, requestBody.pulse.ipAddress, requestBody.pulse.uuid, requestBody.pulse.originMemberID, requestBody.event);
+        const duplicated = await findDuplicated(collection, requestBody.pulse.ipAddress, requestBody.pulse.uuid, requestBody.pulse.originMemberID, requestBody.event, requestBody.eventDetails);
         if(!duplicated?.length) await collection.insertOne(requestBody);
       }
       response.code = 200;
