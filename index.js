@@ -77,7 +77,8 @@ app.post('/match', async (req, res) => {
       const highestConfidencePulse = heartbeats.reduce((a, b) => {
         const confidenceA = getMatchingConfidence(a.pulse, pulse_client);
         const confidenceB = getMatchingConfidence(b.pulse, pulse_client);
-        return confidenceA > confidenceB ? a : b;
+        const latestPulse = a.pulse.timestampUTC > b.pulse.timestampUTC ? a : b;
+        return confidenceA > confidenceB ? a : (confidenceA == confidenceB ? latestPulse : b);
       });
       const highestConfidenceScore = getMatchingConfidence(highestConfidencePulse.pulse, pulse_client);
       if(highestConfidenceScore) {
