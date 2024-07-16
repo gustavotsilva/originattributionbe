@@ -41,7 +41,7 @@ async function findDuplicated(collection, ipAddress, uuid, originMemberID, event
 
 function validPageViewPulse(pulseEvent){
   if(pulseEvent.event != 'page_view') return true;
-  if(!pulseEvent.pulse.markers && !pulseEvent.pulse.genericUTM) return false;
+  if(!pulseEvent.pulse.genericUTM) return false;
   return true;
 }
 
@@ -49,11 +49,10 @@ app.post('/pulse', async (req, res) => {
     const requestBody = req.body;
     const response = {}
     try {
-      if(validPageViewPulse(requestBody)){
-        const collection = (await connectToDatabase()).collection('pulse_heartbeat');
-        const duplicated = await findDuplicated(collection, requestBody.pulse.ipAddress, requestBody.pulse.uuid, requestBody.pulse.originMemberID, requestBody.event, requestBody.eventDetails);
-        if(!duplicated?.length) await collection.insertOne(requestBody);
-      }
+      if(!validPageViewPulse(requestBody)) throw new Error('Pulse not valid!');
+      const collection = (await connectToDatabase()).collection('pulse_heartbeat');
+      const duplicated = await findDuplicated(collection, requestBody.pulse.ipAddress, requestBody.pulse.uuid, requestBody.pulse.originMemberID, requestBody.event, requestBody.eventDetails);
+      if(!duplicated?.length) await collection.insertOne(requestBody);
       response.code = 200;
       response.message = 'Data saved successfully';
       sentryLog(SentryError.INFO, requestBody, response.message);
